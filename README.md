@@ -63,12 +63,12 @@ For Vercel, `VITE_API_URL` is required and must be available when Vercel builds 
 VITE_API_URL=https://raasta-api-ik0i.onrender.com
 ```
 
-If the variable is absent, the frontend deliberately falls back to `http://127.0.0.1:8000` for local development. Vite environment variables are compiled into the production bundle, so changing the value requires a new deployment.
+If the variable is absent, production builds fall back to `https://raasta-api-ik0i.onrender.com`, while local development falls back to `http://127.0.0.1:8000`. Vite environment variables are compiled into the production bundle, so changing the value requires a new deployment.
 
 On Render, set the backend's allowed frontend origin before redeploying. Multiple origins can be supplied as a comma-separated list; the two local Vite origins are always retained automatically:
 
 ```text
-ALLOWED_ORIGINS=https://YOUR-VERCEL-URL.vercel.app
+ALLOWED_ORIGINS=https://raasta-accessibility-map.vercel.app
 ```
 
 Use the exact Vercel origin without a path. Preview deployments can be added as additional comma-separated origins when needed.

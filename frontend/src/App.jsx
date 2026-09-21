@@ -113,7 +113,7 @@ function App() {
       setFlow('success')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (requestError) {
-      setError(requestError.response?.data?.detail || 'Raasta could not reach the local analysis service. Check that the backend is running, then try again.')
+      setError(requestError.response?.data?.detail || 'Could not reach the Raasta analysis service. Please try again in a moment.')
       setFlow('error')
     }
   }

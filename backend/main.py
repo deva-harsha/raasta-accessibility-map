@@ -1,6 +1,7 @@
 from functools import lru_cache
 from io import BytesIO
 import json
+import logging
 import os
 from pathlib import Path
 from threading import Lock
@@ -19,6 +20,7 @@ MODEL_NAME = "openai/clip-vit-base-patch32"
 MAX_IMAGE_BYTES = 12 * 1024 * 1024
 MAX_IMAGE_PIXELS = 25_000_000
 LOW_CONFIDENCE_THRESHOLD = 0.40
+LOGGER = logging.getLogger("raasta.analysis")
 
 MobilityProfile = Literal["wheelchair", "crutches", "stroller", "elderly"]
 Verdict = Literal[
@@ -105,7 +107,8 @@ LIMITATION = (
     "Verify uncertain situations before proceeding."
 )
 
-LOCAL_ALLOWED_ORIGINS = (
+DEFAULT_ALLOWED_ORIGINS = (
+    "https://raasta-accessibility-map.vercel.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 )
@@ -117,7 +120,7 @@ def get_allowed_origins() -> list[str]:
         for origin in os.getenv("ALLOWED_ORIGINS", "").split(",")
     )
     return list(dict.fromkeys([
-        *LOCAL_ALLOWED_ORIGINS,
+        *DEFAULT_ALLOWED_ORIGINS,
         *(origin for origin in configured if origin and origin != "*"),
     ]))
 
@@ -239,12 +242,35 @@ async def analyze(
     image: Annotated[UploadFile, File(description="Entrance or path image")],
     mobility_profile: Annotated[MobilityProfile, Form()],
 ) -> AnalysisResponse:
+    request_id = uuid4().hex
+    LOGGER.info(
+        "analysis_request_started request_id=%s mobility_profile=%s content_type=%s",
+        request_id,
+        mobility_profile,
+        image.content_type or "unknown",
+    )
+
     if image.content_type and not image.content_type.startswith("image/"):
+        LOGGER.warning(
+            "analysis_request_rejected request_id=%s reason=invalid_content_type content_type=%s",
+            request_id,
+            image.content_type,
+        )
         raise HTTPException(status_code=400, detail="Please upload an image file.")
 
     uploaded = await image.read(MAX_IMAGE_BYTES + 1)
     await image.close()
-    pil_image = decode_image(uploaded)
+    try:
+        pil_image = decode_image(uploaded)
+    except HTTPException as exc:
+        LOGGER.warning(
+            "analysis_request_rejected request_id=%s status_code=%s detail=%s bytes=%s",
+            request_id,
+            exc.status_code,
+            exc.detail,
+            len(uploaded),
+        )
+        raise
 
     try:
         model, processor, torch_module = get_clip()
@@ -262,6 +288,12 @@ async def analyze(
     except HTTPException:
         raise
     except Exception as exc:
+        LOGGER.exception(
+            "analysis_request_failed request_id=%s mobility_profile=%s bytes=%s",
+            request_id,
+            mobility_profile,
+            len(uploaded),
+        )
         raise HTTPException(
             status_code=503,
             detail=(
@@ -272,7 +304,7 @@ async def analyze(
 
     condition_key = CANDIDATES[best_index][0]
     if confidence < LOW_CONFIDENCE_THRESHOLD:
-        return AnalysisResponse(
+        response = AnalysisResponse(
             verdict="Manual verification needed",
             condition="Low-confidence visual match",
             confidence=round(confidence * 100),
@@ -283,15 +315,24 @@ async def analyze(
             profile_note=PROFILE_NOTES[mobility_profile],
             limitation=LIMITATION,
         )
+    else:
+        response = AnalysisResponse(
+            verdict=VERDICTS[condition_key],
+            condition=CONDITION_LABELS[condition_key],
+            confidence=round(confidence * 100),
+            reason=REASONS[condition_key],
+            profile_note=PROFILE_NOTES[mobility_profile],
+            limitation=LIMITATION,
+        )
 
-    return AnalysisResponse(
-        verdict=VERDICTS[condition_key],
-        condition=CONDITION_LABELS[condition_key],
-        confidence=round(confidence * 100),
-        reason=REASONS[condition_key],
-        profile_note=PROFILE_NOTES[mobility_profile],
-        limitation=LIMITATION,
+    LOGGER.info(
+        "analysis_request_completed request_id=%s mobility_profile=%s condition=%s confidence=%s",
+        request_id,
+        mobility_profile,
+        response.condition,
+        response.confidence,
     )
+    return response
 
 
 @app.get("/api/reports", response_model=list[CommunityReport])
