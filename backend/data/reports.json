@@ -1,0 +1,24 @@
+[
+  {
+    "id": "b3aba1c693374c93867d9dfa1305f35d",
+    "location_label": "CSE DEPARTMNENT JNTU",
+    "latitude": 17.49178063863287,
+    "longitude": 78.38853144185485,
+    "mobility_profile": "wheelchair",
+    "verdict": "Not passable",
+    "condition": "Stairs without a visible ramp",
+    "confidence": 66,
+    "reason": "The image most closely matches stairs without a visible wheelchair ramp.",
+    "limitation": "Decision support only\u2014not an accessibility certification. A single photo and a general-purpose vision model can miss slope, width, surface, temporary hazards, and barriers outside the frame. Verify uncertain situations before proceeding.",
+    "image_url": "/uploads/b3aba1c693374c93867d9dfa1305f35d.jpg",
+    "created_at": "2026-09-21T06:48:16.127177Z",
+    "confirmation_count": 1,
+    "user_confirmed_details": [
+      "Stairs present",
+      "Ramp unavailable",
+      "Lift unavailable"
+    ],
+    "user_note": "this is not",
+    "last_confirmed_at": null
+  }
+]

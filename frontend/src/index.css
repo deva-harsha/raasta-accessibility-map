@@ -1,0 +1,83 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --ink: #f2f0e8;
+  --muted: #a7aba8;
+  --subtle: #717673;
+  --teal: #69b7aa;
+  --teal-strong: #8acabd;
+  --teal-dark: #69b7aa;
+  --teal-pale: #122b27;
+  --amber: #d69a4a;
+  --amber-pale: #2c2113;
+  --red: #e0665d;
+  --red-pale: #301816;
+  --line: rgba(242, 240, 232, .16);
+  --line-strong: rgba(242, 240, 232, .3);
+  --paper: #111313;
+  --raised: #171919;
+  --bg: #0b0c0c;
+  --header-bg: rgba(11, 12, 12, .97);
+  --surface: #111313;
+  --surface-subtle: #0e1010;
+  --surface-hover: #0f1111;
+  --surface-selected: #101817;
+  --field-bg: #0e1010;
+  --photo-bg: #080909;
+  --map-bg: #111313;
+  --disabled-bg: #1b1d1d;
+  --on-accent: #07100e;
+  --warning-text: #f1b6b1;
+  --error-text: #f0aaa5;
+  --marker-ring: #f2f0e8;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --ink: #1a1d1c;
+  --muted: #5b625f;
+  --subtle: #737a76;
+  --teal: #096b61;
+  --teal-strong: #087368;
+  --teal-dark: #06564e;
+  --teal-pale: #dcebe6;
+  --amber: #a96013;
+  --amber-pale: #f4e5cc;
+  --red: #aa382e;
+  --red-pale: #f2ddda;
+  --line: rgba(26, 29, 28, .15);
+  --line-strong: rgba(26, 29, 28, .3);
+  --paper: #f9f6ee;
+  --raised: #ebe7dd;
+  --bg: #f3f0e8;
+  --header-bg: rgba(243, 240, 232, .97);
+  --surface: #f9f6ee;
+  --surface-subtle: #ede9df;
+  --surface-hover: #eae6dc;
+  --surface-selected: #dceae5;
+  --field-bg: #f9f6ee;
+  --photo-bg: #dedad0;
+  --map-bg: #d6dad5;
+  --disabled-bg: #dfdcd3;
+  --on-accent: #fffdf8;
+  --warning-text: #7a2d27;
+  --error-text: #8e3029;
+  --marker-ring: #fffdf8;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; background: var(--bg); }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--bg); }
+button, input, textarea, select { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--teal-strong); outline-offset: 3px; }
+h1, h2, h3, p { margin-top: 0; }
+h1, h2, h3 { color: var(--ink); font-family: inherit; }
+a { color: inherit; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+::selection { color: var(--on-accent); background: var(--teal-strong); }

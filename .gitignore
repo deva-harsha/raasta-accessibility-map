@@ -1,0 +1,13 @@
+.venv/
+node_modules/
+**/__pycache__/
+*.py[cod]
+.env
+.env.*
+.cache/
+huggingface/
+models/
+frontend/dist/
+backend/uploads/*
+!backend/uploads/.gitkeep
+.backend-test-deps/
