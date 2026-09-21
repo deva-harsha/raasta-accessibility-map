@@ -23,7 +23,7 @@ Raasta includes deliberately designed light and dark themes. The first visit fol
 ## Architecture
 
 - `frontend/`: React, Vite, Axios, React Leaflet, and Leaflet. The five most recent personal scans, theme preference, and feedback stay in browser `localStorage`.
-- `backend/`: FastAPI and Pillow, with Hugging Face `openai/clip-vit-base-patch32` for local zero-shot image classification. Community data uses local JSON and image files rather than a database.
+- `backend/`: FastAPI and Pillow, with Hugging Face `wkcn/TinyCLIP-ViT-8M-16-Text-3M-YFCC15M` for compact local zero-shot image classification. The model is loaded lazily and cached once per server process. Community data uses local JSON and image files rather than a database.
 - Map tiles come from OpenStreetMap in both themes. Vision inference runs on the configured Raasta backend; no cloud AI or LLM API is called.
 
 ## Setup
@@ -75,8 +75,10 @@ Use the exact Vercel origin without a path. Preview deployments can be added as 
 
 ## Limitations
 
-CLIP is a general-purpose vision-language model, not an accessibility inspection system. Its confidence is only a relative estimate across six supplied descriptions. A photo cannot reliably establish slope, clear width, surface condition, kerb height, structural safety, legal compliance, or anything outside the frame.
+TinyCLIP is a compact general-purpose vision-language model, not an accessibility inspection system. Its confidence is only a relative estimate across six supplied descriptions, and its smaller size trades capability for the ability to run within the prototype server's memory limit. A photo cannot reliably establish slope, clear width, surface condition, kerb height, structural safety, legal compliance, or anything outside the frame.
 
 Community reports depend on user verification. A correct report can become outdated as vehicles move, construction changes, entrances close, or surfaces deteriorate. Confirmation counts indicate agreement, not certification or current safety.
 
 The JSON file and uploads folder are prototype storage, not durable production storage. They have no database transactions, replication, backups, access control, moderation, or multi-server consistency. Do not treat this storage design as production-ready.
+
+On Render, the local filesystem is ephemeral. A restart, redeploy, or free-service spin-down can remove uploaded report images and JSON changes, leaving previously published image URLs unavailable. Durable community reports require external object storage plus a durable database, or an attached persistent disk on a compatible paid service.

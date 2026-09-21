@@ -16,11 +16,11 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from pydantic import BaseModel, Field
 
 
-MODEL_NAME = "openai/clip-vit-base-patch32"
+MODEL_NAME = "wkcn/TinyCLIP-ViT-8M-16-Text-3M-YFCC15M"
 MAX_IMAGE_BYTES = 12 * 1024 * 1024
 MAX_IMAGE_PIXELS = 25_000_000
 LOW_CONFIDENCE_THRESHOLD = 0.40
-LOGGER = logging.getLogger("raasta.analysis")
+LOGGER = logging.getLogger("uvicorn.error")
 
 MobilityProfile = Literal["wheelchair", "crutches", "stroller", "elderly"]
 Verdict = Literal[
@@ -44,6 +44,7 @@ DATA_DIR = BASE_DIR / "data"
 UPLOAD_DIR = BASE_DIR / "uploads"
 REPORTS_FILE = DATA_DIR / "reports.json"
 REPORTS_LOCK = Lock()
+MODEL_LOAD_LOCK = Lock()
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -165,15 +166,31 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 
 @lru_cache(maxsize=1)
-def get_clip() -> tuple[Any, Any, Any]:
-    """Load the model once, on the first analysis request."""
-    import torch
-    from transformers import CLIPModel, CLIPProcessor
+def _load_clip() -> tuple[Any, Any, Any]:
+    """Download and initialize the vision model once per server process."""
+    LOGGER.info("model_loading_started model=%s", MODEL_NAME)
+    try:
+        import torch
+        from transformers import AutoModelForZeroShotImageClassification, AutoProcessor
 
-    processor = CLIPProcessor.from_pretrained(MODEL_NAME)
-    model = CLIPModel.from_pretrained(MODEL_NAME)
-    model.eval()
+        processor = AutoProcessor.from_pretrained(MODEL_NAME)
+        model = AutoModelForZeroShotImageClassification.from_pretrained(
+            MODEL_NAME,
+            use_safetensors=True,
+        )
+        model.eval()
+    except Exception:
+        LOGGER.exception("model_loading_failed model=%s", MODEL_NAME)
+        raise
+
+    LOGGER.info("model_ready model=%s", MODEL_NAME)
     return model, processor, torch
+
+
+def get_clip() -> tuple[Any, Any, Any]:
+    """Return one cached model bundle, serializing the first load."""
+    with MODEL_LOAD_LOCK:
+        return _load_clip()
 
 
 def decode_image(data: bytes) -> Image.Image:
@@ -326,7 +343,7 @@ async def analyze(
         )
 
     LOGGER.info(
-        "analysis_request_completed request_id=%s mobility_profile=%s condition=%s confidence=%s",
+        "analysis_succeeded request_id=%s mobility_profile=%s condition=%s confidence=%s",
         request_id,
         mobility_profile,
         response.condition,
