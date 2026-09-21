@@ -1,24 +1,27 @@
-import maplibreGL from '@maplibre/maplibre-gl-leaflet'
 import { useEffect } from 'react'
-import { useMap } from 'react-leaflet'
-import { MAP_ATTRIBUTION, MAP_STYLES } from '../mapConfig'
+import { TileLayer, useMap } from 'react-leaflet'
+import { MAP_TILES } from '../mapConfig'
 
 export default function ThemeBasemap({ theme }) {
   const map = useMap()
+  const tiles = MAP_TILES[theme] || MAP_TILES.light
 
   useEffect(() => {
-    const layer = maplibreGL({
-      style: MAP_STYLES[theme],
-      attributionControl: false,
-      interactive: false,
-    })
-    layer.addTo(map)
-    map.attributionControl.addAttribution(MAP_ATTRIBUTION)
+    const frame = window.requestAnimationFrame(() => map.invalidateSize())
+    const followUp = window.setTimeout(() => map.invalidateSize(), 180)
     return () => {
-      map.removeLayer(layer)
-      map.attributionControl.removeAttribution(MAP_ATTRIBUTION)
+      window.cancelAnimationFrame(frame)
+      window.clearTimeout(followUp)
     }
   }, [map, theme])
 
-  return null
+  return (
+    <TileLayer
+      key={theme}
+      url={tiles.url}
+      attribution={tiles.attribution}
+      subdomains={tiles.subdomains}
+      maxZoom={tiles.maxZoom}
+    />
+  )
 }

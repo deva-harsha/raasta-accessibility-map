@@ -1,6 +1,7 @@
 from functools import lru_cache
 from io import BytesIO
 import json
+import os
 from pathlib import Path
 from threading import Lock
 from typing import Annotated, Any, Literal
@@ -104,6 +105,22 @@ LIMITATION = (
     "Verify uncertain situations before proceeding."
 )
 
+LOCAL_ALLOWED_ORIGINS = (
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+)
+
+
+def get_allowed_origins() -> list[str]:
+    configured = (
+        origin.strip().rstrip("/")
+        for origin in os.getenv("ALLOWED_ORIGINS", "").split(",")
+    )
+    return list(dict.fromkeys([
+        *LOCAL_ALLOWED_ORIGINS,
+        *(origin for origin in configured if origin and origin != "*"),
+    ]))
+
 
 class AnalysisResponse(BaseModel):
     verdict: str
@@ -136,9 +153,9 @@ class CommunityReport(BaseModel):
 app = FastAPI(title="Raasta local analysis API", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=get_allowed_origins(),
     allow_credentials=False,
-    allow_methods=["GET", "POST"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")

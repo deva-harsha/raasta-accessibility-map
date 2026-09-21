@@ -18,13 +18,13 @@ No account is required. This is a local-only prototype: report metadata persists
 
 ## Themes and map tiles
 
-Raasta includes deliberately designed light and dark themes. The first visit follows the operating-system colour preference; the header toggle then saves the user's choice in browser `localStorage`. The map swaps between OpenFreeMap's Positron and Dark styles when the theme changes. Both styles use OpenMapTiles with OpenStreetMap data, keep their attribution visible, and require an internet connection. Vision inference remains local after the CLIP model files are available.
+Raasta includes deliberately designed light and dark themes. The first visit follows the operating-system colour preference; the header toggle then saves the user's choice in browser `localStorage`. Both themes use OpenStreetMap's reliable no-key raster tiles; the surrounding map interface remains matched to the selected theme. OpenStreetMap attribution stays visible and the tiles require an internet connection. Vision inference remains local on the configured backend after the CLIP model files are available.
 
 ## Architecture
 
-- `frontend/`: React, Vite, Axios, React Leaflet, Leaflet, and the MapLibre Leaflet bridge. The five most recent personal scans, theme preference, and feedback stay in browser `localStorage`.
+- `frontend/`: React, Vite, Axios, React Leaflet, and Leaflet. The five most recent personal scans, theme preference, and feedback stay in browser `localStorage`.
 - `backend/`: FastAPI and Pillow, with Hugging Face `openai/clip-vit-base-patch32` for local zero-shot image classification. Community data uses local JSON and image files rather than a database.
-- Basemap styles are served by OpenFreeMap and use OpenStreetMap data. Vision inference runs locally; no cloud AI or LLM API is called.
+- Map tiles come from OpenStreetMap in both themes. Vision inference runs on the configured Raasta backend; no cloud AI or LLM API is called.
 
 ## Setup
 
@@ -57,12 +57,21 @@ npm run dev
 
 Open `http://localhost:5173`. Vite proxies both `/api` and `/uploads` to the local backend.
 
-For a production frontend build, set `VITE_API_URL` to the public backend origin before building. Leave it unset in local development so the Vite proxy is used.
+For Vercel, `VITE_API_URL` is required and must be available when Vercel builds the frontend. Add it in the Vercel project's environment variables for Production (and Preview if needed), then redeploy:
 
-```powershell
-$env:VITE_API_URL = "https://api.example.org"
-npm run build
+```text
+VITE_API_URL=https://raasta-api-ik0i.onrender.com
 ```
+
+If the variable is absent, the frontend deliberately falls back to `http://127.0.0.1:8000` for local development. Vite environment variables are compiled into the production bundle, so changing the value requires a new deployment.
+
+On Render, set the backend's allowed frontend origin before redeploying. Multiple origins can be supplied as a comma-separated list; the two local Vite origins are always retained automatically:
+
+```text
+ALLOWED_ORIGINS=https://YOUR-VERCEL-URL.vercel.app
+```
+
+Use the exact Vercel origin without a path. Preview deployments can be added as additional comma-separated origins when needed.
 
 ## Limitations
 

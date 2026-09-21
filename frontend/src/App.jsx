@@ -69,7 +69,7 @@ function App() {
   useEffect(() => {
     api.get('/api/reports')
       .then((response) => setReports(response.data))
-      .catch((requestError) => setReportsError(requestError.response?.data?.detail || 'Could not reach the local report service.'))
+      .catch((requestError) => setReportsError(requestError.response?.data?.detail || 'Could not reach the configured report service.'))
       .finally(() => setReportsLoading(false))
   }, [])
 
@@ -164,7 +164,7 @@ function App() {
       </header>
       {publishNotice && mode === 'explore' && <div className="success-notice" role="status">{publishNotice}<button type="button" onClick={() => setPublishNotice('')} aria-label="Dismiss notification">×</button></div>}
       {mode === 'explore' ? <ExploreMap key={focusedReportId || 'explore'} theme={theme} defaultSelectedId={focusedReportId} reports={reports} loading={reportsLoading} error={reportsError} onReportUpdate={updateReport} onStartReport={() => setMode('report')} /> : reportView()}
-      <footer>Community reports can be wrong or outdated · Vision analysis runs locally · OpenFreeMap tiles use OpenStreetMap data and require internet</footer>
+      <footer>Community reports can be wrong or outdated · Vision analysis runs on the configured Raasta backend · Map tiles require internet</footer>
     </div>
   )
 }
