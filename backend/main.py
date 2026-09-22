@@ -23,6 +23,7 @@ LOW_CONFIDENCE_THRESHOLD = 0.40
 LOGGER = logging.getLogger("uvicorn.error")
 
 MobilityProfile = Literal["wheelchair", "crutches", "stroller", "elderly"]
+AnalysisSource = Literal["ai", "manual"]
 Verdict = Literal[
     "Likely passable",
     "Temporary obstruction",
@@ -37,6 +38,12 @@ UserConfirmedDetail = Literal[
     "Uneven surface",
     "Temporary obstruction",
     "Other",
+    "Stairs",
+    "No ramp",
+    "Blocked path",
+    "Pothole",
+    "Steep curb",
+    "Construction",
 ]
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -108,6 +115,14 @@ LIMITATION = (
     "Verify uncertain situations before proceeding."
 )
 
+MANUAL_REPORT_REASON = (
+    "Details were reported directly by the person who checked this location."
+)
+MANUAL_REPORT_LIMITATION = (
+    "User-reported community guidance—not an accessibility certification. "
+    "Conditions can change, so verify the route before travelling."
+)
+
 DEFAULT_ALLOWED_ORIGINS = (
     "https://raasta-accessibility-map.vercel.app",
     "http://localhost:5173",
@@ -152,6 +167,7 @@ class CommunityReport(BaseModel):
     user_confirmed_details: list[UserConfirmedDetail] = Field(default_factory=list)
     user_note: str | None = None
     last_confirmed_at: datetime | None = None
+    analysis_source: AnalysisSource = "ai"
 
 
 app = FastAPI(title="Raasta local analysis API", version="0.1.0")
@@ -372,6 +388,7 @@ async def create_report(
     reason: Annotated[str, Form()],
     limitation: Annotated[str, Form()],
     user_verified: Annotated[bool, Form()],
+    analysis_source: Annotated[AnalysisSource, Form()] = "ai",
     user_confirmed_details: Annotated[list[UserConfirmedDetail] | None, Form()] = None,
     user_note: Annotated[str | None, Form()] = None,
 ) -> CommunityReport:
@@ -380,6 +397,19 @@ async def create_report(
             status_code=422,
             detail="Confirm that you checked the location before publishing.",
         )
+
+    confirmed_details = list(dict.fromkeys(user_confirmed_details or []))
+    if analysis_source == "manual":
+        if not confirmed_details:
+            raise HTTPException(
+                status_code=422,
+                detail="Select at least one observed barrier for a manual report.",
+            )
+        condition = ", ".join(confirmed_details)
+        confidence = 0
+        reason = MANUAL_REPORT_REASON
+        limitation = MANUAL_REPORT_LIMITATION
+
     if image.content_type and not image.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Please upload the analyzed image.")
 
@@ -409,9 +439,10 @@ async def create_report(
         image_url=f"/uploads/{filename}",
         created_at=datetime.now(timezone.utc),
         confirmation_count=1,
-        user_confirmed_details=list(dict.fromkeys(user_confirmed_details or [])),
+        user_confirmed_details=confirmed_details,
         user_note=clean_text(user_note, "User note", 280) if user_note else None,
         last_confirmed_at=None,
+        analysis_source=analysis_source,
     )
 
     try:

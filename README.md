@@ -12,6 +12,8 @@ Raasta does **not** certify accessibility or legal compliance. Reports are commu
 4. The user chooses **Add this to the access map**, enters a clear location label, clicks a small map or explicitly requests browser geolocation to place the pin, reviews a preview, and verifies the report before publishing.
 5. An existing report can be turned into a copyable **civic report** summary for sending manually to a college, mall, municipality, or community group. Raasta does not file a complaint or contact an organisation automatically.
 
+If vision analysis is temporarily unavailable, the same real photo can continue through **Manual community report**. The user selects the applicable mobility profile, observed barriers, passability verdict, optional note, and map location. These reports are stored with `analysis_source: manual` and displayed as **User-reported details**; Raasta does not invent or attach an AI result.
+
 The **AI finding** is the local CLIP model's suggestion from the photo. **User-confirmed details** are selected and written by the person who visited the location. Neither is an official accessibility certification.
 
 No account is required. This is a local-only prototype: report metadata persists in `backend/data/reports.json`, and safely re-encoded images are stored in `backend/uploads/` on the machine running the backend. It does not synchronize reports between different computers. New installations contain no sample reports or fabricated markers.
