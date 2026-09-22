@@ -52,6 +52,7 @@ def run() -> None:
             assert created["user_confirmed_details"] == ["Ramp unavailable", "Other"]
             assert created["user_note"] == payload["user_note"]
             assert created["last_confirmed_at"] is None
+            assert created["analysis_source"] == "ai"
             listed = client.get("/api/reports").json()
             assert len(listed) == 1
             assert listed[0]["id"] == created["id"]
@@ -61,13 +62,46 @@ def run() -> None:
             assert confirmed.json()["last_confirmed_at"] is not None
             assert client.post("/api/reports/notfound/confirm").status_code == 404
 
+            manual_payload = {
+                **payload,
+                "location_label": "Manual Report Entrance",
+                "verdict": "Not passable",
+                "condition": "Stairs, No ramp",
+                "confidence": "0",
+                "reason": "Details were reported directly by the person who checked this location.",
+                "analysis_source": "manual",
+                "user_confirmed_details": ["Stairs", "No ramp"],
+            }
+            manual_response = client.post(
+                "/api/reports",
+                data=manual_payload,
+                files={"image": ("manual.png", image_bytes.getvalue(), "image/png")},
+            )
+            assert manual_response.status_code == 201, manual_response.text
+            manual = manual_response.json()
+            assert manual["analysis_source"] == "manual"
+            assert manual["confidence"] == 0
+            assert manual["condition"] == "Stairs, No ramp"
+            assert manual["reason"] == main.MANUAL_REPORT_REASON
+            assert manual["user_confirmed_details"] == ["Stairs", "No ramp"]
+
+            missing_details = {**manual_payload}
+            missing_details.pop("user_confirmed_details")
+            rejected = client.post(
+                "/api/reports",
+                data=missing_details,
+                files={"image": ("manual.png", image_bytes.getvalue(), "image/png")},
+            )
+            assert rejected.status_code == 422, rejected.text
+
         legacy = main.CommunityReport.model_validate({
             key: value for key, value in created.items()
-            if key not in {"user_confirmed_details", "user_note", "last_confirmed_at"}
+            if key not in {"user_confirmed_details", "user_note", "last_confirmed_at", "analysis_source"}
         })
         assert legacy.user_confirmed_details == []
         assert legacy.user_note is None
         assert legacy.last_confirmed_at is None
+        assert legacy.analysis_source == "ai"
 
     print("backend import and report endpoint smoke test ok")
 

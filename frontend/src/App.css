@@ -89,7 +89,7 @@ main { width: min(100% - 48px, 960px); margin: 0 auto; }
 .finding-section small { display: block; margin-top: 9px; color: var(--subtle); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
 .confirmed-section ul { margin: 10px 0 0; padding: 0; list-style: none; }
 .confirmed-section li { padding: 7px 0; display: flex; align-items: center; gap: 8px; color: var(--ink); border-bottom: 1px solid var(--line); font-size: .82rem; }
-.confirmed-section .user-note { margin-top: 12px; padding-left: 12px; border-left: 1px solid var(--teal); font-style: italic; }
+.confirmed-section .user-note, .finding-section .user-note { margin-top: 12px; padding-left: 12px; border-left: 1px solid var(--teal); font-style: italic; }
 .report-limitation { color: var(--subtle); font-size: .74rem; line-height: 1.55; }
 .report-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 16px; }
 .report-tools a, .report-tools button, .secondary-button, .text-button, .clear-button, .back-button, .use-location-button { min-height: 44px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; color: var(--ink); background: transparent; border: 1px solid var(--line-strong); border-radius: 2px; cursor: pointer; font-size: .78rem; font-weight: 700; text-align: center; text-decoration: none; }
@@ -158,6 +158,7 @@ main { width: min(100% - 48px, 960px); margin: 0 auto; }
 .replace-button { left: 50%; bottom: 14px; padding: 0 15px; display: flex; align-items: center; gap: 7px; transform: translateX(-50%); font-weight: 700; white-space: nowrap; }
 .primary-button, .secondary-button { width: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 9px; }
 .primary-button { margin-top: 22px; }
+.manual-fallback-button { width: 100%; margin-top: 8px; }
 .primary-button:disabled { color: var(--subtle); background: var(--disabled-bg); border-color: var(--line); cursor: not-allowed; }
 .decision-note { max-width: 650px; margin: 14px auto 0; color: var(--subtle); font-size: .78rem; line-height: 1.5; text-align: center; }
 .error-box { margin: 18px 0; padding: 14px 0 14px 14px; color: var(--error-text); border-left: 3px solid var(--red); }
@@ -209,6 +210,8 @@ main { width: min(100% - 48px, 960px); margin: 0 auto; }
 .manual-details { margin: 26px 0; padding: 24px 0; border: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .manual-details legend { padding: 0 8px 0 0; font-weight: 750; }.manual-details legend span { margin-left: 6px; color: var(--subtle); font-size: .68rem; text-transform: uppercase; }.manual-details > p { color: var(--muted); font-size: .85rem; }.detail-chips { display: flex; flex-wrap: wrap; gap: 7px; }.detail-chips button { display: inline-flex; align-items: center; gap: 6px; }
 .manual-details label { margin-top: 20px; display: grid; grid-template-columns: 1fr auto; gap: 7px; font-weight: 700; }.manual-details label span { color: var(--subtle); font: .7rem ui-monospace, SFMono-Regular, Consolas, monospace; }.manual-details textarea { grid-column: 1/-1; min-height: 94px; padding: 12px; resize: vertical; }
+.manual-details .manual-verdict-field { grid-template-columns: 1fr; }
+.manual-verdict-field select { min-height: 48px; padding: 0 12px; color: var(--ink); background: var(--field-bg); border: 1px solid var(--line-strong); border-radius: 2px; }
 .pin-instruction { margin: 22px 0 10px; display: flex; align-items: center; gap: 10px; color: var(--ink); }.pin-instruction > span { display: flex; flex-direction: column; gap: 2px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .7rem; }.pin-instruction strong { color: var(--ink); font-family: inherit; font-size: .85rem; }
 .use-location-button { width: auto; margin-bottom: 10px; color: var(--teal); }
 .location-status { margin: 0 0 10px; color: var(--muted); font-size: .78rem; }

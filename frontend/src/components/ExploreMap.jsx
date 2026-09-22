@@ -53,6 +53,7 @@ export default function ExploreMap({ theme, reports, loading, error, onReportUpd
   const filtersActive = profile !== 'all' || verdict !== 'all' || searchQuery.trim()
   const lastUpdate = reports.length ? relativeTime(Math.max(...reports.map((report) => new Date(report.last_confirmed_at || report.created_at).getTime()))) : ''
   const severeWheelchairWarning = selected?.mobility_profile === 'wheelchair' && /stairs|no (visible )?ramp/i.test(`${selected.condition} ${selected.reason}`)
+  const selectedIsManual = selected?.analysis_source === 'manual'
 
   const chooseReport = (report) => {
     setSelectedId(report.id)
@@ -104,7 +105,8 @@ export default function ExploreMap({ theme, reports, loading, error, onReportUpd
     const coordinates = `${selected.latitude}, ${selected.longitude}`
     const mapLink = `https://www.google.com/maps/search/?api=1&query=${selected.latitude},${selected.longitude}`
     const details = selected.user_confirmed_details?.length ? selected.user_confirmed_details.join(', ') : 'No additional details recorded'
-    setCivicReportText(`COMMUNITY ACCESSIBILITY REPORT\n\nLocation: ${selected.location_label}\nObserved: ${new Date(selected.created_at).toLocaleString()}\nMobility profile: ${profileLabel}\nAccessibility verdict: ${selected.verdict}\nAI finding: ${selected.condition} — ${selected.reason}\nUser-confirmed details: ${details}${selected.user_note ? `\nUser note: ${selected.user_note}` : ''}\nCoordinates: ${coordinates}\nMap: ${mapLink}\n\nThis text was generated from an existing Raasta community report. It is not an official complaint or accessibility certification.`)
+    const finding = selected.analysis_source === 'manual' ? `User-reported details: ${details}` : `AI finding: ${selected.condition} — ${selected.reason}\nUser-confirmed details: ${details}`
+    setCivicReportText(`COMMUNITY ACCESSIBILITY REPORT\n\nLocation: ${selected.location_label}\nObserved: ${new Date(selected.created_at).toLocaleString()}\nMobility profile: ${profileLabel}\nAccessibility verdict: ${selected.verdict}\n${finding}${selected.user_note ? `\nUser note: ${selected.user_note}` : ''}\nCoordinates: ${coordinates}\nMap: ${mapLink}\n\nThis text was generated from an existing Raasta community report. It is not an official complaint or accessibility certification.`)
   }
 
   const copyCivicReport = async () => {
@@ -151,8 +153,8 @@ export default function ExploreMap({ theme, reports, loading, error, onReportUpd
             <dl className="report-timestamps"><div><dt>Observed</dt><dd>{new Date(selected.created_at).toLocaleString()}</dd></div><div><dt>Last confirmed</dt><dd>{selected.last_confirmed_at ? `${new Date(selected.last_confirmed_at).toLocaleString()} (${relativeTime(selected.last_confirmed_at)})` : 'Not yet reconfirmed'}</dd></div></dl>
             {reportIsOutdated(selected.last_confirmed_at || selected.created_at) && <div className="outdated-warning" role="note"><Clock3 aria-hidden="true" size={18} /><strong>This report may be outdated. Verify current conditions before travelling.</strong></div>}
             {severeWheelchairWarning && <div className="wheelchair-warning" role="alert"><AlertTriangle aria-hidden="true" size={22} /><strong>Wheelchair warning: stairs are reported here with no visible ramp. Check for another entrance before travelling.</strong></div>}
-            <section className="finding-section"><span>AI finding</span><h3>{selected.condition}</h3><p>{selected.reason}</p><small>Model confidence estimate: {selected.confidence}%</small></section>
-            <section className="confirmed-section"><span>User-confirmed details</span>{selected.user_confirmed_details?.length ? <ul>{selected.user_confirmed_details.map((detail) => <li key={detail}><Check aria-hidden="true" size={15} />{detail}</li>)}</ul> : <p>No additional details were selected.</p>}{selected.user_note && <p className="user-note">“{selected.user_note}”</p>}</section>
+            <section className="finding-section"><span>{selectedIsManual ? 'User-reported details' : 'AI finding'}</span><h3>{selected.condition}</h3><p>{selectedIsManual ? 'Reported directly by the person who checked this location.' : selected.reason}</p>{!selectedIsManual && <small>Model confidence estimate: {selected.confidence}%</small>}{selectedIsManual && selected.user_note && <p className="user-note">“{selected.user_note}”</p>}</section>
+            {!selectedIsManual && <section className="confirmed-section"><span>User-confirmed details</span>{selected.user_confirmed_details?.length ? <ul>{selected.user_confirmed_details.map((detail) => <li key={detail}><Check aria-hidden="true" size={15} />{detail}</li>)}</ul> : <p>No additional details were selected.</p>}{selected.user_note && <p className="user-note">“{selected.user_note}”</p>}</section>}
             <p className="report-limitation">{selected.limitation}</p>
             <div className="report-tools"><a href={`https://www.google.com/maps/search/?api=1&query=${selected.latitude},${selected.longitude}`} target="_blank" rel="noreferrer"><MapPin aria-hidden="true" size={17} /> View in Google Maps</a><button type="button" onClick={copySummary}><Clipboard aria-hidden="true" size={17} /> Copy report summary</button></div>
             <button className="civic-report-button" type="button" onClick={createCivicReport}><FileText aria-hidden="true" size={18} /> Create civic report</button>
